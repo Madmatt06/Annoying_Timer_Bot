@@ -30,6 +30,9 @@ def run_discord_bot():
             for bot_user in bot_users:
                 if bot_user.user_object.id == interaction.user.id:
                     user_exists = True
+                    bot_user.timers.append(UserTimer(starting_time=round(time.time()), life_time=60, name='timer1',
+                                                       set_action=Action.none, user=interaction.user,
+                                                       set_channel=interaction.channel))
         if not user_exists:
             bot_users.append(TimerUser(user_object=interaction.user,
                                        timer=UserTimer(starting_time=round(time.time()), life_time=60, name='timer1',
