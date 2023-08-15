@@ -19,8 +19,23 @@ def run_discord_bot():
     @app_commands.describe(option='Choose to lists specifically timers or stop watches')
     @app_commands.choices(
         option=[app_commands.Choice(name='Timers', value='1'), app_commands.Choice(name='Stop Watches', value='2')])
-    async def test(interaction: discord.Interaction, option: app_commands.Choice[str]):
-        await interaction.response.send_message('You have nothing linked to your account.', ephemeral=True)
+    async def list(interaction: discord.Interaction, option: app_commands.Choice[str]):
+        interaction.response.sendmessage('Checking for account in data base...', ephemeral=True)
+        if option.value == '1':
+            return_message = 'There are no timers linked to your account.'
+            for bot_user in bot_users:
+                if bot_user.user_object.id == interaction.user.id:
+                    interaction.response.edit('Account found in database. Reading timers...')
+                    return_message = 'Timer\'s linked to your account\n'
+                    for existing_timer in bot_user.timers:
+                        return_message.append(f'Name:{existing_timer.name}; Time length:{existing_timer.life_time}, Time left:')
+                        if existing_timer.end_time < time.time():
+                            return_message.append('0 seconds\n')
+                        else:
+                            return_message.append(f'{existing_timer.end_time - time.time()} seconds\n')
+                        return_message.append('--------------------')
+        interaction.response.edit(return_message)
+
 
     @tree.command(name='create_test_timer', description='Creates a 1 minute timer for testing which notifies the user.')
     async def create_test_timer(interaction: discord.Interaction):
