@@ -26,11 +26,24 @@ def run_discord_bot():
     async def create_test_timer(interaction: discord.Interaction):
         global bot_users
         user_exists = False
+        to_many_timers = False
         if len(bot_users) != 0:
             for bot_user in bot_users:
                 if bot_user.user_object.id == interaction.user.id:
                     user_exists = True
-                    bot_user.timers.append(UserTimer(starting_time=round(time.time()), life_time=60, name='timer1',
+                    name_number = 1
+                    recheck = True
+                    while recheck:
+                        recheck = False
+                        for set_timer in bot_user.timers:
+                            if set_timer.name == f'Test Timer {name_number}':
+                                recheck = True
+                                name_number += 1
+                                break
+                        if name_number > 40:
+                            to_many_timers = True
+                            break
+                    bot_user.timers.append(UserTimer(starting_time=round(time.time()), life_time=60, name=f'Test Timer {name_number}',
                                                        set_action=Action.none, user=interaction.user,
                                                        set_channel=interaction.channel))
         if not user_exists:
@@ -38,6 +51,9 @@ def run_discord_bot():
                                        timer=UserTimer(starting_time=round(time.time()), life_time=60, name='timer1',
                                                        set_action=Action.none, user=interaction.user,
                                                        set_channel=interaction.channel)))
+        if to_many_timers:
+            await interaction.response.send_message('Too many test timers. Delete one before creating another timer.', ephemeral=True)
+            return
         await interaction.response.send_message('1 Minute timer created', ephemeral=True)
 
     @tree.command(name='create', description='Create a timer or stopwatch')
