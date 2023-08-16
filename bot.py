@@ -6,6 +6,7 @@ from timeruser import TimerUser
 from timer import UserTimer
 from action import Action
 import time
+import views
 
 bot_users: [TimerUser] = []
 
@@ -79,7 +80,7 @@ def run_discord_bot():
     async def create(interaction: discord.Interaction, option: app_commands.Choice[str]):
         if option.value == '0':
             print(f'User "{interaction.user.name}" requested timer creation')
-        await interaction.response.send_message(f'Command received with option {option.name} chosen')
+        await interaction.response.send_message(content=f'Command received with option {option.name} chosen', view= views.timer_creation())
 
     @client.event
     async def on_ready():
