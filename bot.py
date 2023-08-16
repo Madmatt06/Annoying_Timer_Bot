@@ -20,25 +20,28 @@ def run_discord_bot():
     @app_commands.choices(
         option=[app_commands.Choice(name='Timers', value='1'), app_commands.Choice(name='Stop Watches', value='2')])
     async def list(interaction: discord.Interaction, option: app_commands.Choice[str]):
-        interaction.response.sendmessage('Checking for account in data base...', ephemeral=True)
+        await interaction.response.send_message('Checking for account in data base...', ephemeral=True)
+        message = await interaction.original_response()
         if option.value == '1':
             return_message = 'There are no timers linked to your account.'
             for bot_user in bot_users:
                 if bot_user.user_object.id == interaction.user.id:
-                    interaction.response.edit('Account found in database. Reading timers...')
-                    return_message = 'Timer\'s linked to your account\n'
+                    await message.edit(content='Account found in database. Reading timers...')
+                    return_message = 'Timers linked to your account\n'
                     for existing_timer in bot_user.timers:
-                        return_message.append(f'Name:{existing_timer.name}; Time length:{existing_timer.life_time}, Time left:')
+                        return_message += (f'Name: {existing_timer.name}\nTimer length: {existing_timer.life_time} seconds\nTime left: ')
                         if existing_timer.end_time < time.time():
-                            return_message.append('0 seconds\n')
+                            return_message += ('0 seconds\n')
                         else:
-                            return_message.append(f'{existing_timer.end_time - time.time()} seconds\n')
-                        return_message.append('--------------------')
-        interaction.response.edit(return_message)
+                            return_message += (f'{round(existing_timer.end_time - time.time())} seconds\n')
+                        return_message += ('--------------------\n')
+        await message.edit(content=return_message)
 
 
     @tree.command(name='create_test_timer', description='Creates a 1 minute timer for testing which notifies the user.')
     async def create_test_timer(interaction: discord.Interaction):
+        await interaction.response.send_message('Creating timer...', ephemeral=True)
+        message = await interaction.original_response()
         global bot_users
         user_exists = False
         to_many_timers = False
@@ -63,13 +66,13 @@ def run_discord_bot():
                                                        set_channel=interaction.channel))
         if not user_exists:
             bot_users.append(TimerUser(user_object=interaction.user,
-                                       timer=UserTimer(starting_time=round(time.time()), life_time=60, name='timer1',
+                                       timer=UserTimer(starting_time=round(time.time()), life_time=60, name='Test Timer 1',
                                                        set_action=Action.none, user=interaction.user,
                                                        set_channel=interaction.channel)))
         if to_many_timers:
-            await interaction.response.send_message('Too many test timers. Delete one before creating another timer.', ephemeral=True)
+            await message.edit(content='Too many test timers. Delete one before creating another timer.')
             return
-        await interaction.response.send_message('1 Minute timer created', ephemeral=True)
+        await message.edit(content='1 Minute timer created')
 
     @tree.command(name='create', description='Create a timer or stopwatch')
     @app_commands.choices(option=[app_commands.Choice(name='Timer', value='0')])
