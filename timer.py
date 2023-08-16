@@ -5,7 +5,7 @@ import asyncio
 
 async def timer_send(user: User, set_channel: channel, timer_name: str, wait: int):
     await asyncio.sleep(wait)
-    await set_channel.send(f'{user.mention}\n The timer {timer_name} has gone off!')
+    await set_channel.send(f'{user.mention}\n The timer "{timer_name}" has gone off!')
 
 
 class UserTimer:
