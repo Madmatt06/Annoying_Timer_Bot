@@ -18,8 +18,7 @@ def run_discord_bot():
 
     @tree.command(name='list', description='Lists timers or stopwatches linked to you')
     @app_commands.describe(option='Choose to lists specifically timers or stop watches')
-    @app_commands.choices(
-        option=[app_commands.Choice(name='Timers', value='1'), app_commands.Choice(name='Stop Watches', value='2')])
+    @app_commands.choices(option=[app_commands.Choice(name='Timers', value='1'), app_commands.Choice(name='Stop Watches', value='2')])
     async def list(interaction: discord.Interaction, option: app_commands.Choice[str]):
         await interaction.response.send_message('Checking for account in data base...', ephemeral=True)
         message = await interaction.original_response()
@@ -40,7 +39,14 @@ def run_discord_bot():
 
 
     @tree.command(name='create_test_timer', description='Creates a 1 minute timer for testing which notifies the user.')
-    async def create_test_timer(interaction: discord.Interaction):
+    @app_commands.choices(minutes=[app_commands.Choice(name='1', value=1), app_commands.Choice(name='2', value=2), app_commands.Choice(name='3', value=3), app_commands.Choice(name='4', value=4), app_commands.Choice(name='5', value=5), app_commands.Choice(name='6', value=6), app_commands.Choice(name='7', value=7), app_commands.Choice(name='8', value=8), app_commands.Choice(name='9', value=9), app_commands.Choice(name='10', value=10), app_commands.Choice(name='30', value=30), app_commands.Choice(name='60', value=60), app_commands.Choice(name='120', value=120), app_commands.Choice(name='180', value=180), app_commands.Choice(name='240', value=240), app_commands.Choice(name='300', value=300),app_commands.Choice(name='360', value=360),app_commands.Choice(name='420', value=420),app_commands.Choice(name='480', value=480), app_commands.Choice(name='540', value=540)])
+    @app_commands.choices(alarm=[app_commands.Choice(name='Notify', value=0), app_commands.Choice(name='Message', value=1)])
+    @app_commands.describe(messagecommand = "Enter the message to send when the timer expires")
+    async def create_test_timer(interaction: discord.Interaction, minutes: app_commands.Choice[int], alarm: app_commands.Choice[int], messagecommand: str):
+        if alarm == 0:
+            setalarm = Action.ping
+        else:
+            setalarm = Action.message
         await interaction.response.send_message('Creating timer...', ephemeral=True)
         message = await interaction.original_response()
         global bot_users
@@ -62,18 +68,18 @@ def run_discord_bot():
                         if name_number > 40:
                             to_many_timers = True
                             break
-                    bot_user.timers.append(UserTimer(starting_time=round(time.time()), life_time=60, name=f'Test Timer {name_number}',
-                                                       set_action=Action.none, user=interaction.user,
-                                                       set_channel=interaction.channel))
+                    bot_user.timers.append(UserTimer(starting_time=round(time.time()), life_time=minutes.value*60, name=f'Test Timer {name_number}',
+                                                     set_action=setalarm, user=interaction.user,
+                                                     set_channel=interaction.channel, action_arg= messagecommand))
         if not user_exists:
             bot_users.append(TimerUser(user_object=interaction.user,
-                                       timer=UserTimer(starting_time=round(time.time()), life_time=60, name='Test Timer 1',
-                                                       set_action=Action.none, user=interaction.user,
-                                                       set_channel=interaction.channel)))
+                                       timer=UserTimer(starting_time=round(time.time()), life_time=minutes.value*60, name='Test Timer 1',
+                                                       set_action=setalarm, user=interaction.user,
+                                                       set_channel=interaction.channel, action_arg=messagecommand)))
         if to_many_timers:
             await message.edit(content='Too many test timers. Delete one before creating another timer.')
             return
-        await message.edit(content='1 Minute timer created')
+        await message.edit(content=f'{minutes.name} minute timer created')
 
     @tree.command(name='create', description='Create a timer or stopwatch')
     @app_commands.choices(option=[app_commands.Choice(name='Timer', value='0')])

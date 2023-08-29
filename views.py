@@ -12,4 +12,3 @@ class timer_creation(discord.ui.View):
     async def next(self, interaction:discord.Interaction, button: discord.ui.Button):
         await interaction.message.edit(content='Timer Created', view=None)
         await interaction.response.defer()
-        interaction.data.
