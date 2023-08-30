@@ -1,16 +1,27 @@
 from action import Action
 from discord import User, channel
 import asyncio
+from time import sleep
 
 
 async def timer_send(user: User, set_channel: channel, timer_name: str, wait: int):
-    await asyncio.sleep(wait)
-    await set_channel.send(f'{user.mention}\n The timer "{timer_name}" has gone off!')
+    print('timer_send function called')
+    try:
+        await asyncio.sleep(wait)
+        await set_channel.send(f'{user.mention}\n The timer "{timer_name}" has gone off!')
+    except asyncio.CancelledError:
+        print('Timer cancled')
+        return
 
 
 async def timer_message(user: User, set_channel: channel, timer_name: str, wait: int, message_send: str):
-    await asyncio.sleep(wait)
-    await set_channel.send(f'"{message_send}" \nTimer created by {user.mention}.')
+    print('timer_message function called')
+    try:
+        await asyncio.sleep(wait)
+        await set_channel.send(f'"{message_send}" \nTimer created by {user.mention}.')
+    except asyncio.CancelledError:
+        print('Timer cancled')
+        return
 
 class UserTimer:
 
@@ -30,3 +41,6 @@ class UserTimer:
         }
 
         self.async_timer = asyncio.create_task(self.async_timer_switch.get(set_action))
+
+    def __del__(self):
+        self.async_timer.cancel()

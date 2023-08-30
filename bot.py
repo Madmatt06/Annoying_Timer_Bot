@@ -43,6 +43,12 @@ def run_discord_bot():
     @app_commands.choices(alarm=[app_commands.Choice(name='Notify', value=0), app_commands.Choice(name='Message', value=1)])
     @app_commands.describe(messagecommand = "Enter the message to send when the timer expires")
     async def create_test_timer(interaction: discord.Interaction, minutes: app_commands.Choice[int], alarm: app_commands.Choice[int], messagecommand: str):
+        print(f'Recived test timer command from {interaction.user.name} with minutes = {minutes.name}, alarm = {alarm.name} and value = {alarm.value}, and messagecommand = {messagecommand}')
+        service_limit:int = -1
+        if interaction.user.id == 0:
+            print(f'User {interaction.user.name} has a service rate limit of 1 timer at a time.')
+            service_limit = 1
+        current_timer_number:int = 0
         if alarm == 0:
             setalarm = Action.ping
         else:
@@ -68,6 +74,11 @@ def run_discord_bot():
                         if name_number > 40:
                             to_many_timers = True
                             break
+                    current_timer_number = len(bot_user.timers)
+                    if current_timer_number >= service_limit:
+                        print(f'User ({interaction.user.name}) has reached their service limit ("Current use" = {current_timer_number})')
+                        await message.edit(content=f'You have reached your service limit of 1 timer at a time. Please clear timers with the "/delete timers" command')
+                        return
                     bot_user.timers.append(UserTimer(starting_time=round(time.time()), life_time=minutes.value*60, name=f'Test Timer {name_number}',
                                                      set_action=setalarm, user=interaction.user,
                                                      set_channel=interaction.channel, action_arg= messagecommand))
@@ -79,6 +90,7 @@ def run_discord_bot():
         if to_many_timers:
             await message.edit(content='Too many test timers. Delete one before creating another timer.')
             return
+
         await message.edit(content=f'{minutes.name} minute timer created')
 
     @tree.command(name='create', description='Create a timer or stopwatch')
@@ -87,6 +99,25 @@ def run_discord_bot():
         if option.value == '0':
             print(f'User "{interaction.user.name}" requested timer creation')
         await interaction.response.send_message(content=f'Command received with option {option.name} chosen', view= views.timer_creation())
+
+    @tree.command(name='delete', description='Delete a timer or stopwatch')
+    @app_commands.choices(option=[app_commands.Choice(name='Timers', value=0)])
+    async def create(interaction: discord.Interaction, option: app_commands.Choice[int]):
+        if len(bot_users) != 0:
+            await interaction.response.send_message('Searching for user timers...', ephemeral=True)
+            message = await interaction.original_response()
+            for bot_user in bot_users:
+                if bot_user.user_object.id == interaction.user.id:
+                    bot_user.timers = []
+                    await message.edit(content='Timers removed succesfully.')
+                    return
+            await message.edit(content='Could not find any timers.')
+            return
+        else:
+            await interaction.response.send_message('Could not find any timers.', ephemeral=True)
+            return
+
+
 
     @client.event
     async def on_ready():
