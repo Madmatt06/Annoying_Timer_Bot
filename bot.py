@@ -75,7 +75,7 @@ def run_discord_bot():
                             to_many_timers = True
                             break
                     current_timer_number = len(bot_user.timers)
-                    if current_timer_number >= service_limit and service_limit > -1:
+                    if current_timer_number >= service_limit:
                         print(f'User ({interaction.user.name}) has reached their service limit ("Current use" = {current_timer_number})')
                         await message.edit(content=f'You have reached your service limit of 1 timer at a time. Please clear timers with the "/delete timers" command')
                         return
@@ -92,9 +92,6 @@ def run_discord_bot():
             return
 
         await message.edit(content=f'{minutes.name} minute timer created')
-
-    @tree.command(name='quick_create', description='Quickly creates a timer within the command')
-    @app_commands.describe(time = 'The amount of time you want. d: = days. h: = hours. m: = minutes. seconds = s:. (EX: d:4;m:2;s:3;')
 
     @tree.command(name='create', description='Create a timer or stopwatch')
     @app_commands.choices(option=[app_commands.Choice(name='Timer', value='0')])
