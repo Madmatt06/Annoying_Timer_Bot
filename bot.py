@@ -75,7 +75,7 @@ def run_discord_bot():
                             to_many_timers = True
                             break
                     current_timer_number = len(bot_user.timers)
-                    if current_timer_number >= service_limit:
+                    if current_timer_number >= service_limit and service_limit > -1:
                         print(f'User ({interaction.user.name}) has reached their service limit ("Current use" = {current_timer_number})')
                         await message.edit(content=f'You have reached your service limit of 1 timer at a time. Please clear timers with the "/delete timers" command')
                         return
